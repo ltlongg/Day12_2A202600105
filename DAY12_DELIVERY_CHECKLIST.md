@@ -1,218 +1,301 @@
-#  Delivery Checklist — Day 12 Lab Submission
+# Checklist Bài Nộp Day 12
 
-> **Student Name:** _________________________  
-> **Student ID:** _________________________  
-> **Date:** _________________________
-
----
-
-##  Submission Requirements
-
-Submit a **GitHub repository** containing:
-
-### 1. Mission Answers (40 points)
-
-Create a file `MISSION_ANSWERS.md` with your answers to all exercises:
-
-```markdown
-# Day 12 Lab - Mission Answers
-
-## Part 1: Localhost vs Production
-
-### Exercise 1.1: Anti-patterns found
-1. [Your answer]
-2. [Your answer]
-...
-
-### Exercise 1.3: Comparison table
-| Feature | Develop | Production | Why Important? |
-|---------|---------|------------|----------------|
-| Config  | ...     | ...        | ...            |
-...
-
-## Part 2: Docker
-
-### Exercise 2.1: Dockerfile questions
-1. Base image: [Your answer]
-2. Working directory: [Your answer]
-...
-
-### Exercise 2.3: Image size comparison
-- Develop: [X] MB
-- Production: [Y] MB
-- Difference: [Z]%
-
-## Part 3: Cloud Deployment
-
-### Exercise 3.1: Railway deployment
-- URL: https://your-app.railway.app
-- Screenshot: [Link to screenshot in repo]
-
-## Part 4: API Security
-
-### Exercise 4.1-4.3: Test results
-[Paste your test outputs]
-
-### Exercise 4.4: Cost guard implementation
-[Explain your approach]
-
-## Part 5: Scaling & Reliability
-
-### Exercise 5.1-5.5: Implementation notes
-[Your explanations and test results]
-```
+> **Họ và tên:** ltlong  
+> **Mã sinh viên:** 2A202600105  
+> **Ngày:** 17/04/2026  
+> **GitHub Repo:** https://github.com/ltlongg/Day12_2A202600105  
+> **Nền tảng deploy:** Render  
+> **Public URL:** https://ai-agent-8zg0.onrender.com
 
 ---
 
-### 2. Full Source Code - Lab 06 Complete (60 points)
+## Nguồn bằng chứng đã dùng
 
-Your final production-ready agent with all files:
-
-```
-your-repo/
-├── app/
-│   ├── main.py              # Main application
-│   ├── config.py            # Configuration
-│   ├── auth.py              # Authentication
-│   ├── rate_limiter.py      # Rate limiting
-│   └── cost_guard.py        # Cost protection
-├── utils/
-│   └── mock_llm.py          # Mock LLM (provided)
-├── Dockerfile               # Multi-stage build
-├── docker-compose.yml       # Full stack
-├── requirements.txt         # Dependencies
-├── .env.example             # Environment template
-├── .dockerignore            # Docker ignore
-├── railway.toml             # Railway config (or render.yaml)
-└── README.md                # Setup instructions
-```
-
-**Requirements:**
--  All code runs without errors
--  Multi-stage Dockerfile (image < 500 MB)
--  API key authentication
--  Rate limiting (10 req/min)
--  Cost guard ($10/month)
--  Health + readiness checks
--  Graceful shutdown
--  Stateless design (Redis)
--  No hardcoded secrets
+- Các ảnh chụp màn hình đã cung cấp cho thấy:
+  - Deploy Render thành công và có public URL
+  - Test local bằng `curl` với `X-API-Key`
+  - Test `GET /ask` trả về `405 Method Not Allowed`
+  - Test `POST /ask` trả về `200 OK`
+  - Test rate limit trả về `429 Too Many Requests`
+  - Terminal VS Code hiển thị nhiều request `POST /ask` và sau đó bị `429`
+  - Trang `/docs` hiển thị các endpoint `/`, `/ask`, `/health`, `/ready`
+- Các file trong repo đã được đối chiếu:
+  - `06-lab-complete/`
+  - `06-lab-complete/render.yaml`
+  - `06-lab-complete/Dockerfile`
+  - `06-lab-complete/docker-compose.yml`
+  - `06-lab-complete/app/main.py`
+  - `06-lab-complete/app/config.py`
 
 ---
 
-### 3. Service Domain Link
+## Xác minh triển khai
 
-Create a file `DEPLOYMENT.md` with your deployed service information:
+### Deploy trên Render
 
-```markdown
-# Deployment Information
+- [x] Service đã deploy thành công trên Render
+- [x] Repo được kết nối: `ltlongg/Day12_2A202600105`
+- [x] Branch deploy: `main`
+- [x] Public URL hiển thị trên Render: `https://ai-agent-8zg0.onrender.com`
+- [x] Ảnh chụp cho thấy:
+  - First deploy started: `April 17, 2026 at 6:40 PM`
+  - Deploy live: `April 17, 2026 at 6:42 PM`
 
-## Public URL
-https://your-agent.railway.app
+### Xác minh API / Endpoint
 
-## Platform
-Railway / Render / Cloud Run
+- [x] `GET /ask` trả về `405 Method Not Allowed`
+- [x] `POST /ask` hoạt động khi truyền đúng auth
+- [x] API trả về JSON response hợp lệ
+- [x] Rate limiting hoạt động và trả về `429 Too Many Requests`
+- [x] `/docs` truy cập được ở local
+- [x] Trang docs hiển thị các endpoint: `/`, `/ask`, `/health`, `/ready`
 
-## Test Commands
+### Kết quả test xác nhận từ ảnh
 
-### Health Check
+#### 1. Test `curl` local khi thiếu auth
+
+- Kết quả: request bị từ chối
+- Response:
+
+```json
+{"detail":"Missing API key. Include header: X-API-Key: <your-key>"}
+```
+
+#### 2. Test `curl` local khi có API key
+
+- Lệnh đã test trong terminal:
+
 ```bash
-curl https://your-agent.railway.app/health
-# Expected: {"status": "ok"}
+curl -H "X-API-Key: vinai_day12" http://localhost:8000/ask \
+  -X POST -H "Content-Type: application/json" \
+  -d '{"question": "hello"}'
 ```
 
-### API Test (with authentication)
+- Kết quả: thành công
+- Response theo ảnh:
+
+```json
+{
+  "question": "hello",
+  "answer": "Đây là câu trả lời từ AI agent (mock). Trong production, đây sẽ là response từ OpenAI/Anthropic."
+}
+```
+
+#### 3. Test `GET /ask` bằng API client
+
+- Status: `405 Method Not Allowed`
+- Response:
+
+```json
+{
+  "detail": "Method Not Allowed"
+}
+```
+
+#### 4. Test `POST /ask` bằng API client
+
+- Status: `200 OK`
+- Thông tin request trong ảnh:
+  - URL: `http://localhost:8000/ask`
+  - Method: `POST`
+  - Auth: Bearer Token
+- Response theo ảnh:
+
+```json
+{
+  "question": "what is docker?",
+  "answer": "Container là cách đóng gói app để chạy ở mọi nơi. Build once, run anywhere!",
+  "usage": {
+    "requests_remaining": 9,
+    "budget_remaining_usd": 1.9e-05
+  }
+}
+```
+
+#### 5. Test rate limit
+
+- Status: `429 Too Many Requests`
+- Response theo ảnh:
+
+```json
+{
+  "detail": {
+    "error": "Rate limit exceeded",
+    "limit": 10,
+    "window_seconds": 60,
+    "retry_after_seconds": 37
+  }
+}
+```
+
+- Terminal trong VS Code cũng cho thấy nhiều request `POST /ask` thành công trước khi bị `429 Too Many Requests`.
+
+---
+
+## Kiểm tra source code
+
+### Trạng thái repo / deliverable
+
+- [x] Repo GitHub đã tồn tại
+- [x] Thư mục gốc chứa đầy đủ các phần lab Day 12
+- [x] Có thư mục `06-lab-complete/`
+- [x] Có file `06-lab-complete/render.yaml`
+- [x] Có file `06-lab-complete/Dockerfile`
+- [x] Có file `06-lab-complete/docker-compose.yml`
+- [x] Có file `06-lab-complete/.env.example`
+- [x] Có file `06-lab-complete/.dockerignore`
+- [x] Có file `06-lab-complete/README.md`
+- [ ] Chưa thấy `MISSION_ANSWERS.md`
+- [ ] Chưa thấy `DEPLOYMENT.md`
+
+### Các file ứng dụng thực tế tìm thấy
+
+Các file đã xác nhận trong `06-lab-complete/app/`:
+
+- [x] `main.py`
+- [x] `config.py`
+- [ ] Chưa thấy `auth.py` trong `06-lab-complete/app/`
+- [ ] Chưa thấy `rate_limiter.py` trong `06-lab-complete/app/`
+- [ ] Chưa thấy `cost_guard.py` trong `06-lab-complete/app/`
+
+Ghi chú:
+
+- Logic security, rate limiting, cost guard, health, readiness và graceful shutdown hiện đang được viết trực tiếp trong `06-lab-complete/app/main.py`.
+- Các file module tách riêng như `auth.py`, `rate_limiter.py`, `cost_guard.py` có tồn tại trong `04-api-gateway/production/`, nhưng không nằm trong `06-lab-complete/app/`.
+
+### Các tính năng production đã xác minh trong code
+
+- [x] Dockerfile nhiều stage
+- [x] Có endpoint health check: `GET /health`
+- [x] Có endpoint readiness check: `GET /ready`
+- [x] Có xác thực API key qua `X-API-Key`
+- [x] Có rate limiting
+- [x] Có cost guard
+- [x] Cấu hình lấy từ environment variables
+- [x] Có graceful shutdown handler
+- [x] Có security headers
+- [x] Có CORS middleware
+- [x] Có structured logging
+- [x] Docker chạy bằng non-root user
+- [x] Có file cấu hình Render
+- [ ] Chưa phải rate limiting/stateless hoàn toàn bằng Redis trong `06-lab-complete/app/main.py`
+
+### Lưu ý quan trọng về cấu hình
+
+Có một điểm chưa khớp giữa ảnh test và cấu hình mặc định trong `06-lab-complete`:
+
+- Ảnh test cho thấy rate limit là `10 req/min`
+- `06-lab-complete/.env.example` và `06-lab-complete/render.yaml` đang để mặc định `20 req/min`
+
+Điều này cho thấy app bạn test local và template cuối trong `06-lab-complete` có thể chưa dùng đúng cùng một cấu hình.
+
+---
+
+## Đối chiếu với yêu cầu nộp bài
+
+### 1. Mission Answers
+
+- [ ] Chưa có file `MISSION_ANSWERS.md`
+- Khuyến nghị: cần tạo file này trước khi nộp
+
+### 2. Full Source Code
+
+- [x] Source code đã có trong repo
+- [x] Các file Docker và deploy đã có
+- [x] Các tính năng API cốt lõi đã được triển khai
+- [ ] Cấu trúc thư mục cuối chưa khớp hoàn toàn với checklist mẫu ban đầu
+
+### 3. Thông tin domain service
+
+- [x] Đã xác định được public URL: `https://ai-agent-8zg0.onrender.com`
+- [x] Đã xác định nền tảng deploy: Render
+- [ ] Chưa có file `DEPLOYMENT.md`
+
+---
+
+## Checklist trước khi nộp
+
+- [x] Đã có URL repo
+- [ ] Chưa xác minh được repo đang public chỉ từ ảnh
+- [ ] `MISSION_ANSWERS.md` đã hoàn thành
+- [ ] `DEPLOYMENT.md` đã hoàn thành
+- [x] Có `README.md`
+- [x] Có `.env.example`
+- [x] Không thấy commit file `.env` trong thư mục gốc hoặc `06-lab-complete/`
+- [x] Chưa thấy hardcoded production secret rõ ràng trong các file đã kiểm tra
+- [x] Public URL có hiển thị trong ảnh deploy
+- [ ] Chưa test trực tiếp public URL từ bằng chứng hiện có
+- [ ] Chưa thấy thư mục `screenshots/` trong repo
+- [ ] Chưa xác minh lịch sử commit rõ ràng
+
+---
+
+## Các file nên bổ sung trước khi nộp
+
+### `MISSION_ANSWERS.md`
+
+Nên có các phần:
+
+- Part 1: Localhost vs Production
+- Part 2: Docker
+- Part 3: Cloud Deployment
+- Part 4: API Security
+- Part 5: Scaling & Reliability
+
+### `DEPLOYMENT.md`
+
+Nên có các nội dung:
+
+- Public URL: `https://ai-agent-8zg0.onrender.com`
+- Platform: `Render`
+- Lệnh health check
+- Lệnh test API có auth
+- Các environment variables đã dùng
+- Link hoặc ảnh chụp màn hình
+
+---
+
+## Lệnh gợi ý để tự kiểm tra
+
 ```bash
-curl -X POST https://your-agent.railway.app/ask \
+curl https://ai-agent-8zg0.onrender.com/health
+```
+
+```bash
+curl -X POST https://ai-agent-8zg0.onrender.com/ask \
   -H "X-API-Key: YOUR_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"user_id": "test", "question": "Hello"}'
-```
-
-## Environment Variables Set
-- PORT
-- REDIS_URL
-- AGENT_API_KEY
-- LOG_LEVEL
-
-## Screenshots
-- [Deployment dashboard](screenshots/dashboard.png)
-- [Service running](screenshots/running.png)
-- [Test results](screenshots/test.png)
-```
-
-##  Pre-Submission Checklist
-
-- [ ] Repository is public (or instructor has access)
-- [ ] `MISSION_ANSWERS.md` completed with all exercises
-- [ ] `DEPLOYMENT.md` has working public URL
-- [ ] All source code in `app/` directory
-- [ ] `README.md` has clear setup instructions
-- [ ] No `.env` file committed (only `.env.example`)
-- [ ] No hardcoded secrets in code
-- [ ] Public URL is accessible and working
-- [ ] Screenshots included in `screenshots/` folder
-- [ ] Repository has clear commit history
-
----
-
-##  Self-Test
-
-Before submitting, verify your deployment:
-
-```bash
-# 1. Health check
-curl https://your-app.railway.app/health
-
-# 2. Authentication required
-curl https://your-app.railway.app/ask
-# Should return 401
-
-# 3. With API key works
-curl -H "X-API-Key: YOUR_KEY" https://your-app.railway.app/ask \
-  -X POST -d '{"user_id":"test","question":"Hello"}'
-# Should return 200
-
-# 4. Rate limiting
-for i in {1..15}; do 
-  curl -H "X-API-Key: YOUR_KEY" https://your-app.railway.app/ask \
-    -X POST -d '{"user_id":"test","question":"test"}'; 
-done
-# Should eventually return 429
+  -d '{"question":"Hello"}'
 ```
 
 ---
 
-##  Submission
+## Kết luận hiện tại
 
-**Submit your GitHub repository URL:**
+Các bằng chứng hiện có cho thấy project của bạn đã có:
 
-```
-https://github.com/your-username/day12-agent-deployment
-```
+- deploy Render thành công
+- API hoạt động
+- xác thực request
+- rate limiting
+- docs page
+- endpoint health/readiness trong code
 
-**Deadline:** 17/4/2026
+Trước khi nộp chính thức, các mục còn thiếu chính là:
 
----
-
-##  Quick Tips
-
-1.  Test your public URL from a different device
-2.  Make sure repository is public or instructor has access
-3.  Include screenshots of working deployment
-4.  Write clear commit messages
-5.  Test all commands in DEPLOYMENT.md work
-6.  No secrets in code or commit history
+- `MISSION_ANSWERS.md`
+- `DEPLOYMENT.md`
+- đưa ảnh chụp vào repo
+- xác minh lại repo public và public URL hoạt động trực tiếp
 
 ---
 
-##  Need Help?
+## Danh sách ảnh tham chiếu
 
-- Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-- Review [CODE_LAB.md](CODE_LAB.md)
-- Ask in office hours
-- Post in discussion forum
-
----
-
-**Good luck! **
+- `c:/Users/Admin/Pictures/Screenshots/Screenshot 2026-04-17 184334.png`
+- `c:/Users/Admin/Pictures/Screenshots/Screenshot 2026-04-17 224242.png`
+- `c:/Users/Admin/Pictures/Screenshots/Screenshot 2026-04-17 230620.png`
+- `c:/Users/Admin/Pictures/Screenshots/Screenshot 2026-04-17 230830.png`
+- `c:/Users/Admin/Pictures/Screenshots/Screenshot 2026-04-17 230853.png`
+- `c:/Users/Admin/Pictures/Screenshots/Screenshot 2026-04-17 230907.png`
+- `c:/Users/Admin/Pictures/Screenshots/Screenshot 2026-04-17 231851.png`
